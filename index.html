@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simone Soldera - Archivio Personale</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        apple: {
+                            bg: '#000000',
+                            card: '#1c1c1e',
+                            text: '#f5f5f7',
+                            gray: '#86868b',
+                            border: '#333336'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #f5f5f7;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* --- STREAMING_CHUNK: Styling della Hero e del layout --- */
+        
+        /* Intro Hero Section fissa sul fondo */
+        #hero-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 0;
+            transition: opacity 0.1s ease-out, transform 0.1s ease-out;
+            background-color: #000000;
+        }
+
+        /* Contenitore principale che scorre SOPRA la Hero */
+        #main-content {
+            position: relative;
+            z-index: 10;
+            margin-top: 100vh; /* Inizia esattamente dopo la schermata intera */
+            background-color: #000000;
+            border-top-left-radius: 3rem;
+            border-top-right-radius: 3rem;
+            padding-top: 2rem;
+            min-height: 100vh;
+            box-shadow: 0 -20px 50px rgba(0,0,0,0.8);
+        }
+
+        /* Effetti per le Card del Bento Box */
+        .bento-card {
+            background-color: #1c1c1e;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 2rem;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+            cursor: pointer;
+        }
+
+        .bento-card:hover {
+            transform: scale(0.98);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .bento-bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 0;
+        }
+
+        .bento-card:hover .bento-bg-img {
+            transform: scale(1.05);
+        }
+
+        .overlay-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            z-index: 1;
+        }
+
+        .bento-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- STREAMING_CHUNK: Viste interne e Mappa --- */
+        .view-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Indicatore di scroll */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="font-sans text-apple-text">
+
+    <!-- ==========================================
+         HERO SECTION (Fissa sul fondo, si sfuma)
+         ========================================== -->
+    <div id="hero-container">
+        <h1 id="hero-title" class="text-5xl md:text-8xl font-bold tracking-tight text-white mb-4 text-center px-4">Simone Soldera</h1>
+        <p id="hero-subtitle" class="text-xl md:text-2xl text-apple-gray uppercase tracking-[0.3em] font-light text-center px-4">Archivio personale</p>
+        
+        <div class="scroll-indicator flex flex-col items-center opacity-50">
+            <span class="text-xs uppercase tracking-widest mb-2">Scorri</span>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         CONTENITORE PRINCIPALE (Scorre sopra la Hero)
+         ========================================== -->
+    <main id="main-content" class="w-full">
+        <div class="max-w-6xl mx-auto w-full px-4 md:px-8 pb-20">
+
+            <!-- --- STREAMING_CHUNK: Home View (Bento Box) --- -->
+            <div id="home-view" class="view-section active w-full h-full pt-8">
+                
+                <header class="mb-10 px-2 md:hidden">
+                    <h2 class="text-3xl font-bold tracking-tight text-white">Esplora</h2>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 auto-rows-[200px] md:auto-rows-[240px]">
+
+                    <!-- CHI SONO -->
+                    <div onclick="navigate('chisono-view')" class="bento-card md:col-span-2 md:row-span-2 group">
+                        <img src="chi sono.jpeg" alt="Simone Soldera" class="bento-bg-img" style="object-position: center 25%;">
+                        <div class="overlay-gradient"></div>
+                        <div class="bento-content p-6 md:p-8 justify-end z-10">
+                            <h2 class="text-3xl font-bold mb-3 text-white">Chi Sono</h2>
+                            <p class="text-white/80 text-base md:text-lg leading-snug">Ciao! Mi chiamo Simone, ho vent’anni, ho molte passioni e ogni giorno vorrei scoprirne una nuova.</p>
+                        </div>
+                    </div>
+
+                    <!-- FOTO -->
+                    <div onclick="navigate('foto-view')" class="bento-card md:col-span-1 md:row-span-2">
+                        <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80" alt="Fotografia" class="bento-bg-img">
+                        <div class="overlay-gradient"></div>
+                        <div class="bento-content p-6 justify-end">
+                            <h2 class="text-2xl font-bold text-white">Foto</h2>
+                            <p class="text-white/70 text-sm mt-1">Scatti e attimi</p>
+                        </div>
+                    </div>
+
+                    <!-- MUSICA -->
+                    <div onclick="navigate('musica-view')" class="bento-card md:col-span-1 md:row-span-1 p-6 flex flex-col items-start justify-between bg-[#1c1c1e]">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold">Musica</h2>
+                            <p class="text-apple-gray text-sm mt-1">Elettronica & Suoni</p>
+                        </div>
+                    </div>
+
+                    <!-- GRAFICA -->
+                    <div onclick="navigate('grafica-view')" class="bento-card md:col-span-1 md:row-span-1 p-6 flex flex-col items-start justify-between bg-[#1c1c1e]">
+                        <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold">Grafica</h2>
+                            <p class="text-apple-gray text-sm mt-1">Design & Loghi</p>
+                        </div>
+                    </div>
+
+                    <!-- VIAGGI -->
+                    <div onclick="navigate('viaggi-view')" class="bento-card md:col-span-2 md:row-span-1">
+                        <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80" alt="Viaggi" class="bento-bg-img" style="object-position: center 60%;">
+                        <div class="overlay-gradient"></div>
+                        <div class="bento-content p-6 justify-end">
+                            <h2 class="text-2xl font-bold text-white">Viaggi</h2>
+                            <p class="text-white/70 text-sm mt-1">La mappa del mondo</p>
+                        </div>
+                    </div>
+
+                    <!-- MILLECOSE -->
+                    <div onclick="navigate('millecose-view')" class="bento-card md:col-span-2 md:row-span-1 p-6 md:p-8 flex flex-col justify-center bg-zinc-900">
+                        <h2 class="text-2xl font-bold mb-2">Millecose</h2>
+                        <p class="text-apple-gray text-base md:text-lg">Pensieri sparsi, riflessioni, appunti e progetti in corso.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- --- STREAMING_CHUNK: Viste di Dettaglio --- -->
+            <template id="back-button">
+                <button onclick="navigate('home-view')" class="mb-12 flex items-center text-sm font-medium text-apple-gray hover:text-white transition-colors cursor-pointer group pt-8">
+                    <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Torna al Menu
+                </button>
+            </template>
+
+            <!-- CHI SONO -->
+            <div id="chisono-view" class="view-section w-full max-w-3xl">
+                <div id="back-chisono"></div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-8 tracking-tight">Chi Sono</h2>
+                
+                <div class="prose prose-invert prose-lg">
+                    <p class="text-xl text-apple-gray font-light leading-relaxed mb-6">
+                        Ciao! Mi chiamo Simone, ho vent’anni, ho molte passioni e ogni giorno vorrei scoprirne una nuova. Se dovessi individuare l'aspetto che più mi caratterizza, direi il mio costante desiderio di esprimermi appieno attraverso qualsiasi mezzo disponibile come disegno, musica, grafica, testi, fotografia e altro ancora.
+                    </p>
+                    <p class="text-xl text-apple-gray font-light leading-relaxed">
+                        Questo è il mio spazio digitale, spero ti piaccia, buona permanenza.
+                    </p>
+                </div>
+            </div>
+
+            <!-- FOTO (Con funzione Lightbox) -->
+            <div id="foto-view" class="view-section w-full">
+                <div id="back-foto"></div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Fotografia</h2>
+                <p class="text-xl text-apple-gray mb-12 font-light">Catturare la luce. Clicca su una foto per ingrandirla.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <!-- Immagini con attributo data-desc per il lightbox -->
+                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80" 
+                         data-desc="Le prime luci dell'alba immerse nella natura incontaminata. Un senso di pace assoluta."
+                         onclick="openLightbox(this)" 
+                         class="w-full aspect-square object-cover rounded-3xl cursor-pointer hover:opacity-80 transition-opacity border border-white/10" alt="Natura">
+                    
+                    <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80" 
+                         data-desc="Riflessi metallici e simmetrie urbane. La città da una prospettiva diversa."
+                         onclick="openLightbox(this)" 
+                         class="w-full aspect-[4/5] object-cover rounded-3xl cursor-pointer hover:opacity-80 transition-opacity border border-white/10 lg:row-span-2" alt="Urbano">
+                    
+                    <img src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=800&q=80" 
+                         data-desc="Il silenzio della foresta. Un luogo dove il tempo sembra essersi fermato."
+                         onclick="openLightbox(this)" 
+                         class="w-full aspect-square object-cover rounded-3xl cursor-pointer hover:opacity-80 transition-opacity border border-white/10" alt="Foresta">
+                    
+                    <img src="https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=800&q=80" 
+                         data-desc="Sfumature di montagna al tramonto, i colori caldi che si scontrano con il freddo della roccia."
+                         onclick="openLightbox(this)" 
+                         class="w-full aspect-[4/5] object-cover rounded-3xl cursor-pointer hover:opacity-80 transition-opacity border border-white/10 lg:row-span-2" alt="Montagna">
+                    
+                    <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80" 
+                         data-desc="L'orizzonte infinito su un lago calmo. Uno scatto che richiede pazienza."
+                         onclick="openLightbox(this)" 
+                         class="w-full aspect-video md:aspect-square object-cover rounded-3xl cursor-pointer hover:opacity-80 transition-opacity border border-white/10 md:col-span-2 lg:col-span-1" alt="Lago">
+                </div>
+            </div>
+
+            <!-- VIAGGI (Menu a schede dei Viaggi) -->
+            <div id="viaggi-view" class="view-section w-full">
+                <div id="back-viaggi"></div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-4 tracking-tight">I Miei Viaggi</h2>
+                <p class="text-xl text-apple-gray mb-8 font-light">Racconti e appunti dal mondo.</p>
+                
+                <!-- Lista dei Viaggi (Griglia) -->
+                <div id="viaggi-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 transition-opacity duration-300">
+                    
+                    <!-- Viaggio 1: Giappone -->
+                    <div onclick="openViaggio('giappone')" class="bento-card min-h-[250px] flex flex-col justify-end group cursor-pointer">
+                        <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80" alt="Giappone" class="bento-bg-img" style="object-position: center 60%;">
+                        <div class="overlay-gradient"></div>
+                        <div class="bento-content p-6 justify-end z-10">
+                            <h3 class="text-2xl font-bold text-white">Giappone</h3>
+                            <p class="text-white/70 text-sm mt-1">Aprile 2026 • Tokyo e Kyoto</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Viaggio 2: Islanda -->
+                    <div onclick="openViaggio('islanda')" class="bento-card min-h-[250px] flex flex-col justify-end group cursor-pointer">
+                        <img src="https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=800&q=80" alt="Islanda" class="bento-bg-img">
+                        <div class="overlay-gradient"></div>
+                        <div class="bento-content p-6 justify-end z-10">
+                            <h3 class="text-2xl font-bold text-white">Islanda</h3>
+                            <p class="text-white/70 text-sm mt-1">Ottobre 2025 • Tra ghiaccio e fuoco</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Viaggio 3: New York -->
+                    <div onclick="openViaggio('newyork')" class="bento-card min-h-[250px] flex flex-col justify-end group md:col-span-2 cursor-pointer">
+                        <img src="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1200&q=80" alt="New York" class="bento-bg-img" style="object-position: center 30%;">
+                        <div class="overlay-gradient"></div>
+                        <div class="bento-content p-6 justify-end z-10">
+                            <h3 class="text-2xl font-bold text-white">New York</h3>
+                            <p class="text-white/70 text-sm mt-1">Maggio 2024 • La città che non si ferma mai</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- --- STREAMING_CHUNK: Dettagli dei singoli viaggi --- -->
+                
+                <!-- Dettaglio Viaggio: Giappone -->
+                <div id="viaggio-giappone" class="hidden opacity-0 transition-opacity duration-300 w-full mt-4">
+                    <button onclick="closeViaggio('giappone')" class="mb-8 flex items-center text-sm font-medium text-apple-gray hover:text-white transition-colors cursor-pointer group">
+                        <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Torna ai Viaggi
+                    </button>
+                    <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80" class="w-full h-64 md:h-96 object-cover rounded-[2rem] mb-8 border border-white/10" alt="Giappone" style="object-position: center 60%;">
+                    <h3 class="text-3xl md:text-4xl font-bold mb-4">Giappone: Caos, Neon e Templi</h3>
+                    <div class="prose prose-invert prose-lg text-apple-gray font-light">
+                        <p class="mb-4">Un viaggio indimenticabile di due settimane. Da Tokyo, vibrante e infinita, fino alla calma millenaria di Kyoto.</p>
+                        <p>Abbiamo camminato nei boschi di bambù di Arashiyama all'alba per evitare la folla, e ci siamo persi nei vicoli illuminati dai neon di Shinjuku. È un mondo che viaggia su un equilibrio perfetto tra futuro estremo e tradizioni sacre. Scrivi qui gli appunti del tuo viaggio e raccontalo a modo tuo.</p>
+                    </div>
+                </div>
+
+                <!-- Dettaglio Viaggio: Islanda -->
+                <div id="viaggio-islanda" class="hidden opacity-0 transition-opacity duration-300 w-full mt-4">
+                    <button onclick="closeViaggio('islanda')" class="mb-8 flex items-center text-sm font-medium text-apple-gray hover:text-white transition-colors cursor-pointer group">
+                        <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Torna ai Viaggi
+                    </button>
+                    <img src="https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=1200&q=80" class="w-full h-64 md:h-96 object-cover rounded-[2rem] mb-8 border border-white/10" alt="Islanda">
+                    <h3 class="text-3xl md:text-4xl font-bold mb-4">Islanda: La Natura Estrema</h3>
+                    <div class="prose prose-invert prose-lg text-apple-gray font-light">
+                        <p class="mb-4">Nessun posto al mondo ti fa sentire così piccolo come l'Islanda. Abbiamo guidato lungo la Ring Road sfidando venti fortissimi e godendoci paesaggi alieni.</p>
+                        <p>Le aurore boreali danzavano sopra di noi mentre eravamo immersi in acque termali fumanti in mezzo al nulla. Un'esperienza che mi ha ricollegato alla forza pura del pianeta.</p>
+                    </div>
+                </div>
+
+                <!-- Dettaglio Viaggio: New York -->
+                <div id="viaggio-newyork" class="hidden opacity-0 transition-opacity duration-300 w-full mt-4">
+                    <button onclick="closeViaggio('newyork')" class="mb-8 flex items-center text-sm font-medium text-apple-gray hover:text-white transition-colors cursor-pointer group">
+                        <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Torna ai Viaggi
+                    </button>
+                    <img src="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1200&q=80" class="w-full h-64 md:h-96 object-cover rounded-[2rem] mb-8 border border-white/10" alt="New York" style="object-position: center 30%;">
+                    <h3 class="text-3xl md:text-4xl font-bold mb-4">New York: L'energia del Mondo</h3>
+                    <div class="prose prose-invert prose-lg text-apple-gray font-light">
+                        <p class="mb-4">Il rumore costante, il vapore che esce dai tombini, i grattacieli che ti tolgono il respiro. New York è esattamente come nei film, ma cento volte più intensa.</p>
+                        <p>Passeggiare per Central Park con un caffè in mano, o guardare le luci di Manhattan da Brooklyn al tramonto, sono memorie scolpite per sempre.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRAFICA -->
+            <div id="grafica-view" class="view-section w-full max-w-4xl">
+                <div id="back-grafica"></div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-12 tracking-tight">Grafica</h2>
+                <article class="bg-[#1c1c1e] p-8 md:p-12 rounded-[2rem] border border-apple-border">
+                    <div class="w-full bg-black rounded-2xl h-64 mb-8 flex items-center justify-center border border-white/10 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=1200&q=80" class="w-full h-full object-cover opacity-80" alt="Rebranding">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Rebranding Minimalista</h3>
+                    <p class="text-lg text-apple-gray font-light leading-relaxed">Studio del logo e dell'identità visiva per una caffetteria locale. L'obiettivo era rimuovere il rumore visivo e concentrarsi su una tipografia pulita.</p>
+                </article>
+            </div>
+
+            <!-- MUSICA -->
+            <div id="musica-view" class="view-section w-full max-w-3xl">
+                <div id="back-musica"></div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-12 tracking-tight">Musica</h2>
+                <div class="bg-[#1c1c1e] rounded-[2rem] p-8 md:p-12 border border-apple-border text-center">
+                    <div class="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10">
+                        <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Sintesi Analogica #01</h3>
+                    <p class="text-lg text-apple-gray font-light mb-8">Esplorazioni sonore ambient registrate in notturna.</p>
+                </div>
+            </div>
+
+            <!-- MILLECOSE -->
+            <div id="millecose-view" class="view-section w-full max-w-3xl">
+                <div id="back-millecose"></div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Millecose</h2>
+                <p class="text-xl text-apple-gray mb-12 font-light pb-8 border-b border-white/10">Idee sparse, appunti e progetti in corso.</p>
+                <article class="mb-12">
+                    <time class="text-xs font-bold tracking-widest text-apple-gray uppercase">14 Giugno 2026</time>
+                    <h3 class="text-2xl font-bold mt-2 mb-4">Il minimalismo come strumento</h3>
+                    <p class="text-lg text-apple-gray font-light leading-relaxed mb-4">Oggi ho aggiornato questo spazio. Volevo qualcosa che non rubasse l'attenzione dai contenuti. Nel Bento Box, ogni quadrato ha il suo peso.</p>
+                </article>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- --- STREAMING_CHUNK: Lightbox Overlay per le Foto --- -->
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/95 flex-col items-center justify-center p-4 transition-opacity duration-300 opacity-0 pointer-events-none hidden cursor-pointer" onclick="closeLightbox()">
+        
+        <button class="absolute top-6 right-6 md:top-10 md:right-10 text-white/50 hover:text-white p-2">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <img id="lightbox-img" class="max-h-[60vh] md:max-h-[75vh] max-w-full rounded-2xl object-contain shadow-2xl transition-transform duration-300 transform scale-95" src="" alt="">
+        
+        <p id="lightbox-desc" class="text-white mt-6 md:mt-8 text-base md:text-lg max-w-2xl text-center font-light leading-relaxed px-4"></p>
+    </div>
+
+    <!-- --- STREAMING_CHUNK: Logica di Funzionamento --- -->
+    <script>
+        // 1. INSERIMENTO BOTTONI INDIETRO
+        const backBtnTemplate = document.getElementById('back-button').innerHTML;
+        ['chisono', 'foto', 'viaggi', 'grafica', 'musica', 'millecose'].forEach(id => {
+            const container = document.getElementById(`back-${id}`);
+            if (container) container.innerHTML = backBtnTemplate;
+        });
+
+        // 2. EFFETTO PARALLASSE HERO SECTION
+        const heroContainer = document.getElementById('hero-container');
+        const heroTitle = document.getElementById('hero-title');
+        const heroSubtitle = document.getElementById('hero-subtitle');
+        const mainContent = document.getElementById('main-content');
+
+        window.addEventListener('scroll', () => {
+            let scrolled = window.scrollY;
+            
+            // Sfuma i testi in base allo scorrimento (a 500px spariscono del tutto)
+            let opacity = 1 - (scrolled / 500);
+            if (opacity < 0) opacity = 0;
+            
+            heroTitle.style.opacity = opacity;
+            heroSubtitle.style.opacity = opacity;
+
+            // Leggero movimento verso l'alto per l'effetto parallasse
+            heroContainer.style.transform = `translateY(${scrolled * 0.4}px)`;
+        });
+
+        // 3. LOGICA DI NAVIGAZIONE
+        function navigate(targetId) {
+            const sections = document.querySelectorAll('.view-section');
+            const targetSection = document.getElementById(targetId);
+            
+            // Ripristina la visualizzazione principale dei viaggi in caso fosse aperto un dettaglio
+            const viaggiList = document.getElementById('viaggi-list');
+            if (viaggiList) viaggiList.classList.remove('hidden', 'opacity-0');
+            document.querySelectorAll('[id^="viaggio-"]').forEach(el => {
+                el.classList.add('hidden', 'opacity-0');
+            });
+
+            // Nascondi tutte
+            sections.forEach(sec => {
+                sec.classList.remove('active');
+                setTimeout(() => {
+                    if(!sec.classList.contains('active')) {
+                        sec.style.display = 'none';
+                    }
+                }, 400); 
+            });
+
+            // Mostra target
+            setTimeout(() => {
+                // Scorri all'inizio del contenitore principale (coprendo l'intro)
+                window.scrollTo({ top: mainContent.offsetTop, behavior: 'smooth' });
+                
+                if(targetSection) {
+                    targetSection.style.display = 'block';
+                    void targetSection.offsetWidth; // reflow
+                    targetSection.classList.add('active');
+                }
+            }, 400);
+        }
+
+        // --- STREAMING_CHUNK: Logica Menu Viaggi e Dettagli ---
+        function openViaggio(id) {
+            const list = document.getElementById('viaggi-list');
+            const dettaglio = document.getElementById(`viaggio-${id}`);
+            
+            // Sfuma la lista dei viaggi
+            list.classList.add('opacity-0');
+            setTimeout(() => {
+                list.classList.add('hidden');
+                
+                // Mostra il dettaglio
+                dettaglio.classList.remove('hidden');
+                void dettaglio.offsetWidth; // Richiede al browser di aggiornare (reflow)
+                dettaglio.classList.remove('opacity-0');
+                
+                // Torna in cima alla pagina delicatamente
+                window.scrollTo({ top: mainContent.offsetTop, behavior: 'smooth' });
+            }, 300);
+        }
+
+        function closeViaggio(id) {
+            const list = document.getElementById('viaggi-list');
+            const dettaglio = document.getElementById(`viaggio-${id}`);
+            
+            // Sfuma il dettaglio
+            dettaglio.classList.add('opacity-0');
+            setTimeout(() => {
+                dettaglio.classList.add('hidden');
+                
+                // Mostra di nuovo la lista
+                list.classList.remove('hidden');
+                void list.offsetWidth; // reflow
+                list.classList.remove('opacity-0');
+            }, 300);
+        }
+
+        // 4. LOGICA LIGHTBOX (FOTO)
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxDesc = document.getElementById('lightbox-desc');
+
+        function openLightbox(imgElement) {
+            lightboxImg.src = imgElement.src;
+            lightboxDesc.textContent = imgElement.getAttribute('data-desc') || "";
+            
+            lightbox.classList.remove('hidden');
+            lightbox.classList.remove('pointer-events-none');
+            
+            // Piccolo delay per permettere il display:block prima dell'opacità
+            setTimeout(() => {
+                lightbox.classList.remove('opacity-0');
+                lightboxImg.classList.remove('scale-95');
+                lightboxImg.classList.add('scale-100');
+            }, 10);
+
+            // Blocca lo scroll della pagina
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.add('opacity-0');
+            lightboxImg.classList.remove('scale-100');
+            lightboxImg.classList.add('scale-95');
+            lightbox.classList.add('pointer-events-none');
+            
+            setTimeout(() => {
+                lightbox.classList.add('hidden');
+            }, 300);
+
+            // Sblocca lo scroll della pagina
+            document.body.style.overflow = 'auto';
+        }
+    </script>
+</body>
+</html>
